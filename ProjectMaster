@@ -1,1 +1,39 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Apr 25 09:14:27 2019
 
+@author: LeaGrahn
+"""
+
+# use Gurobi's Python library
+from gurobipy import *
+
+Products=[1,2,3]
+h=[2,1,4]
+D=[10,20,5]
+S=10
+s=[2.0,3.0,4.0]
+
+#Model name
+model = Model("basic_JRP")
+
+# Define variables
+
+k={}
+T = model.addVar(lb=1.0, ub=4.0, name="T", vtype=GRB.INTEGER)
+for i in Products:
+    k[i] = model.addVar(lb=2, ub=5.0, name = "k_%s" % i, vtype=GRB.INTEGER)
+
+
+#objective
+obj= (quicksum(k[i]*T*D[i-1]*0.5*h[i-1] for i in Products)+((1/T)*(S+quicksum(s[i-1]/(k[i]) for i in Products ))))
+model.setObjective(obj)
+
+
+#optimize
+model.optimize()
+for v in model.getVars():
+    print('%s %g' % (v.varName, v.x))
+
+print('Obj: %g' % obj.getValue())
