@@ -5,35 +5,65 @@ Created on Thu Apr 25 09:14:27 2019
 
 @author: LeaGrahn
 """
-
-# use Gurobi's Python library
 from gurobipy import *
 
-Products=[1,2,3]
-h=[2,1,4]
-D=[10,20,5]
-S=10
-s=[2.0,3.0,4.0]
+# number of items  
+nitems= 3
+# list of items
+items = range(nitems)
+print(items)
 
-#Model name
-model = Model("basic_JRP")
+#patterns
+patterns=[]
+npatterns= 6
+for i in items:
+    for j in items:
+        if i != j: 
+            patterns.append([i,j])
+            print (i,j)
 
-# Define variables
+print(patterns)
 
-k={}
-T = model.addVar(lb=1.0, ub=4.0, name="T", vtype=GRB.INTEGER)
-for i in Products:
-    k[i] = model.addVar(lb=2, ub=5.0, name = "k_%s" % i, vtype=GRB.INTEGER)
+import random
+s=random.sample(range(30),len(patterns))
+print(s)
+print (len(patterns))
+    
+#patterns = [(0,1),(0,2),(1,2),(0,0),(1,1),(2,2)]
+r_time={(0,1):5 , (0,2):3, (1,2):4, (0):1, (1):2, (2):3}
+S=7
 
+m = Model("JRP_pattern")
 
-#objective
-obj= (quicksum(k[i]*T*D[i-1]*0.5*h[i-1] for i in Products)+((1/T)*(S+quicksum(s[i-1]/(k[i]) for i in Products ))))
-model.setObjective(obj)
+#pattern is chosen or not
+x={}
+for i in patterns:
+    x[patterns.index(i)]=m.addVar(vtype=GRB.BINARY, name="x_%s" % str(i))
+    print(i)
 
+#item j is part of pattern i
+y={}
+for i in patterns:
+    print (i)
+    for j in items:
+        if j in i:
+            y[patterns.i,j]=1
+            print (j)
+        else:
+            y[i,j]=0  
 
-#optimize
-model.optimize()
-for v in model.getVars():
+#only choose one pattern for each item      
+for j in items:
+    m.addConstr(quicksum(y[patterns.index(i),items.index(j)]*x[i] for i in patterns)<= 1)
+    m.addConstr(quicksum(y[i,j]*x[i] for i in patterns)>= 1)
+    
+    
+obj=quicksum(x[i]*s[i] for i in patterns)
+m.setObjective(obj, GRB.MINIMIZE)
+
+m.update()
+m.optimize()
+for v in m.getVars():
     print('%s %g' % (v.varName, v.x))
 
 print('Obj: %g' % obj.getValue())
