@@ -1,0 +1,36 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 26 10:56:44 2019
+
+@author: ngomb
+"""
+from gurobipy import *
+
+# define constant parameters
+items = 3        # items
+h=[2,1,4]        # holding costs
+D=[10,20,5]      # Demand rate
+S=10.0           # The major setup cost       
+s=[2.0,3.0,4.0]  # The minor setup costs
+B=2000.0
+c=[10,10,10]
+
+m=Model("JRP_Deterministic")
+
+k={}
+# Create variables
+T=m.addVar(vtype=GRB.CONTINUOUS, name="T")
+for i in range(items):
+    k[i]=m.addVar(vtype=GRB.CONTINUOUS, name="k_%s" % str(i))
+    print (i)
+    
+obj=quicksum(h[i]*D[i]*T/2 for i in items)-(0.001*T)*(S+quicksum(s[i]*0.001*k[i] for i in items))
+m.setObjective(obj, GRB.MINIMIZE)
+m.update()
+#Add Constraints 
+#m.addConstr(quicksum(D[i]*T*k[i]*w[i] for i in nitems)<=H, "Capacity")
+m.addConstr(quicksum(D[i]*T*k[i]*c[i] for i in items)<=B, "Budget")
+#m.addConstr(T*k[i]*D>=order_min for i in nitems, "Min_order")
+# Solve and print solutions
+m.optimize()
+m.printAttr('X')
