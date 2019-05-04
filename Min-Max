@@ -7,18 +7,19 @@ Created on Sat May  4 11:35:38 2019
 from platypus import NSGAII, Problem, Real
 # define constant parameters
 items = 3        # items
-
 h=[2,1,4]        # holding costs
 D=[10,20,5]      # Demand rate
 S=10.0           # The major setup cost       
 s=[2.0,3.0,4.0]  # The minor setup costs
 B=2000.0
 c=[10,10,10]
-
+k=[]
 def informs(vars):
-    x=vars[0]
-    k=vars[1] 
-    return [sum(h[0:items]*D[0:item]*x/2*k), x*(S+sum(s[0:items]*k)], [sum(D[0:items]*T*k*c[0:items])-B]
+    x=vars[0]               #T period
+    for i in range(items):
+        k.append(vars[1])
+    return [x*0.5*sum(h[0:items]*D[0:items]*k[0:items]), x*(S+sum(s[0:items]*k[0:items]))],\
+                      [x*sum(D[0:items]*k[0:items]*c[0:items])-B]
 
 #(2,2,2) number of decision variables, number of objectives, number of constraints
 problem = Problem(2, 2, 1)
